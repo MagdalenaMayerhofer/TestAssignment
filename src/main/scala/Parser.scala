@@ -3,6 +3,12 @@ import play.api.libs.json._
 
 object Parser {
 
+  /***
+    * This function returns the BooleanExpression if it got an valid input string,
+    * otherwise it throws an exception.
+    * @param json: the input string you want to convert into an BooleanExpression
+    * @return if there are no errors it returns the BooleanExpression
+    */
   def parseJsonToBooleanExpression(json: String): BooleanExpression = {
     try {
       val jsValue = Json.parse(json)
@@ -11,10 +17,6 @@ object Parser {
     catch {
       case _: JsonParseException => throw JsonParseErrorException("Not a valid JSON format!")
     }
-  }
-
-  def parseBooleanExpressionToJson(booleanExpression: BooleanExpression): String = {
-    buildJson(booleanExpression).toString()
   }
 
   def buildBooleanExpression(json: JsValue): BooleanExpression = try {
@@ -59,6 +61,15 @@ object Parser {
     case _: NoSuchElementException => throw JsonParseErrorException("The JSON needs a boolean expression type!")
   }
 
+  /***
+    * This function returns the JSON sting for the given BooleanExpression.
+    * @param booleanExpression: the BooleanExpression you want to convert to a JSON
+    * @return the JSON string
+    */
+  def parseBooleanExpressionToJson(booleanExpression: BooleanExpression): String = {
+    buildJson(booleanExpression).toString()
+  }
+
   def buildJson(booleanExpression: BooleanExpression): JsObject = booleanExpression match {
     case True => JsObject(Seq(
       "type" -> JsString("true")
@@ -84,63 +95,5 @@ object Parser {
       "e1" -> buildJson(e1),
       "e2" -> buildJson(e2)
     ))
-  }
-
-  def simplifyExpression(booleanExpression: BooleanExpression): BooleanExpression = {
-    print(booleanExpression + "\n")
-    booleanExpression match {
-      case True => True
-      case False => False
-      case Variable(symbol) => Variable(symbol)
-      case Not(True) => False
-      case Not(False) => True
-      case Not(Not(e)) => simplifyExpression(e)
-      case Not(e) =>
-        val e1 = simplifyExpression(e)
-        if (e1 != e) {
-          simplifyExpression(Not(e1))
-        }
-        else {
-          Not(e)
-        }
-      case Or(True, e2) => True
-      case Or(e1, True) => True
-      case Or(False, e2) => simplifyExpression(e2)
-      case Or(e1, False) => simplifyExpression(e1)
-      case Or(e1, e2) =>
-        if (e1 == e2) {
-          return simplifyExpression(e1)
-        }
-        if (e1 == Not(e2) || e2 == Not(e1)) {
-          return False
-        }
-        val e3 = simplifyExpression(e1)
-        val e4 = simplifyExpression(e2)
-        if (e1 != e3 || e2 != e4) {
-          simplifyExpression(Or(e3, e4))
-        }
-        else {
-          Or(e1, e2)
-        }
-      case And(True, e2) => simplifyExpression(e2)
-      case And(e1, True) => simplifyExpression(e1)
-      case And(False, e2) => False
-      case And(e1, False) => False
-      case And(e1, e2) =>
-        if (e1 == e2) {
-          return simplifyExpression(e1)
-        }
-        if (e1 == Not(e2) || e2 == Not(e1)) {
-          return False
-        }
-        val e3 = simplifyExpression(e1)
-        val e4 = simplifyExpression(e2)
-        if (e1 != e3 || e2 != e4) {
-          simplifyExpression(And(e3, e4))
-        }
-        else {
-          And(e1, e2)
-        }
-    }
   }
 }

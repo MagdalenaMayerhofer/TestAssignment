@@ -185,26 +185,52 @@ class TestCases extends FunSuite{
 
   test ("simplify 1") {
     val booleanExpression: BooleanExpression = Not(Not(True))
-    assert(Parser.simplifyExpression(booleanExpression) == True)
+    assert(AlgebraicTransformation.simplifyExpression(booleanExpression) == True)
   }
 
   test ("simplify 2") {
     val booleanExpression: BooleanExpression = And(Variable("a"), True)
-    assert(Parser.simplifyExpression(booleanExpression) == Variable("a"))
+    assert(AlgebraicTransformation.simplifyExpression(booleanExpression) == Variable("a"))
   }
 
   test ("simplify 3") {
     val booleanExpression: BooleanExpression = And(Or(True, Variable("c")), Variable("b"))
-    assert(Parser.simplifyExpression(booleanExpression) == Variable("b"))
+    assert(AlgebraicTransformation.simplifyExpression(booleanExpression) == Variable("b"))
   }
 
   test ("simplify 4") {
     val booleanExpression: BooleanExpression = Not(Or(And(True, Variable("x")), Not(False)))
-    assert(Parser.simplifyExpression(booleanExpression) == False)
+    assert(AlgebraicTransformation.simplifyExpression(booleanExpression) == False)
   }
 
-  test ("symplify 5") {
+  test ("simplify 5") {
     val booleanExpression: BooleanExpression = And(Not(Or(Variable("a"), False)), And(Variable("a"), True))
-    assert(Parser.simplifyExpression(booleanExpression) == False)
+    assert(AlgebraicTransformation.simplifyExpression(booleanExpression) == False)
+  }
+
+  test ("simplify 6") {
+    val booleanExpression: BooleanExpression = Not(Or(Variable("a"), Variable("b")))
+    assert(AlgebraicTransformation.simplifyExpression(booleanExpression) == And(Not(Variable("a")), Not(Variable("b"))))
+  }
+
+  test ("simplify 7") {
+    val booleanExpression: BooleanExpression = Not(And(Not(Variable("a")), Variable("b")))
+    assert(AlgebraicTransformation.simplifyExpression(booleanExpression) == Or(Variable("a"), Not(Variable("b"))))
+  }
+
+  // CNF test case
+
+  test ("cnf") {
+    val booleanExpression: BooleanExpression = Not(And(Or(Variable("a"), Variable("c")), Variable("d")))
+    val cnf: BooleanExpression = And(Not(And(Or(Variable("a"), Variable("c")), Variable("d"))),
+      And(And(Or(Not(Not(And(Or(Variable("a"),Variable("c")),Variable("d")))),Not(And(Or(Variable("a"),
+      Variable("c")),Variable("d")))),Or(Not(And(Or(Variable("a"),Variable("c")),Variable("d"))),
+      And(Or(Variable("a"),Variable("c")),Variable("d")))),And(And(And(Or(Not(And(Or(Variable("a"),Variable("c")),
+      Variable("d"))),Or(Variable("a"),Variable("c"))),Or(Not(And(Or(Variable("a"),Variable("c")),Variable("d"))),
+      Variable("d"))),Or(Or(Not(Or(Variable("a"),Variable("c"))),Not(Variable("d"))),And(Or(Variable("a"),
+      Variable("c")),Variable("d")))),And(And(Or(Not(Variable("a")),Or(Variable("a"),Variable("c"))),
+      Or(Not(Variable("c")),Or(Variable("a"),Variable("c")))),Or(Or(Not(Or(Variable("a"),Variable("c"))),
+      Variable("a")),Variable("c"))))))
+    assert(AlgebraicTransformation.createCnf(booleanExpression) == cnf)
   }
 }
